@@ -1,0 +1,207 @@
+[gd_scene load_steps=23 format=2]
+
+[ext_resource path="res://scenes/background.gd" type="Script" id=1]
+[ext_resource path="res://scripts/inimigos.gd" type="Script" id=2]
+[ext_resource path="res://scripts/camera.gd" type="Script" id=3]
+[ext_resource path="res://scenes/escudo.tscn" type="PackedScene" id=4]
+[ext_resource path="res://sprites/background.png" type="Texture" id=5]
+[ext_resource path="res://sprites/ship.png" type="Texture" id=6]
+[ext_resource path="res://scripts/HUD.gd" type="Script" id=7]
+[ext_resource path="res://scripts/ship.gd" type="Script" id=8]
+[ext_resource path="res://scripts/lazeres.gd" type="Script" id=9]
+[ext_resource path="res://scripts/game.gd" type="Script" id=10]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform float vel = -.5f;
+uniform float des = 0f;
+uniform float time = 0f;
+
+void fragment(){
+	COLOR = texture(TEXTURE , UV + (vec2(0, 1f) * time * vel) + vec2(des , 0) );
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/vel = -0.5
+shader_param/des = 0.0
+shader_param/time = 0.0
+
+[sub_resource type="Shader" id=3]
+code = "shader_type canvas_item;
+
+void fragment(){
+	COLOR = texture(TEXTURE , UV * .01f * TIME);
+}"
+
+[sub_resource type="ShaderMaterial" id=4]
+shader = SubResource( 3 )
+
+[sub_resource type="CircleShape2D" id=5]
+radius = 32.7694
+
+[sub_resource type="CircleShape2D" id=6]
+radius = 20.4028
+
+[sub_resource type="Animation" id=7]
+length = 0.2
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("ship:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ 0, 1 ]
+}
+
+[sub_resource type="DynamicFontData" id=8]
+antialiased = false
+font_path = "res://Fontes/OldLondon.ttf"
+
+[sub_resource type="DynamicFont" id=9]
+size = 22
+font_data = SubResource( 8 )
+
+[sub_resource type="GDScript" id=10]
+script/source = "extends Node2D
+
+var tempo = 3
+
+func _ready():
+	pass # 
+
+
+
+
+func _on_Timer_timeout():
+	tempo -= 1
+	$label.text = str(tempo)
+	if tempo <= 0:
+		get_tree().paused = false
+		queue_free()
+"
+
+[sub_resource type="DynamicFontData" id=11]
+font_path = "res://Fontes/VCR_OSD_MONO_1.001.ttf"
+
+[sub_resource type="DynamicFont" id=12]
+size = 54
+font_data = SubResource( 11 )
+
+[node name="game" type="Node2D"]
+script = ExtResource( 10 )
+
+[node name="background" type="Sprite" parent="."]
+material = SubResource( 2 )
+position = Vector2( -1.85583, -1.61696 )
+scale = Vector2( 1.00927, 0.998942 )
+texture = ExtResource( 5 )
+centered = false
+script = ExtResource( 1 )
+nave = NodePath("../ship")
+
+[node name="cenario" type="Node2D" parent="."]
+script = ExtResource( 9 )
+nave = NodePath("../ship")
+
+[node name="inimigos" type="Node2D" parent="cenario"]
+script = ExtResource( 2 )
+
+[node name="spawn_timer" type="Timer" parent="cenario/inimigos"]
+
+[node name="ship" type="Node2D" parent="." groups=[
+"player",
+]]
+material = SubResource( 4 )
+position = Vector2( 80, 266 )
+script = ExtResource( 8 )
+lazeres = NodePath("../cenario")
+
+[node name="Area" type="Area2D" parent="ship"]
+collision_mask = 4
+
+[node name="Shape" type="CollisionShape2D" parent="ship/Area"]
+position = Vector2( 0, -2.12134 )
+shape = SubResource( 5 )
+
+[node name="dead area" type="Area2D" parent="ship"]
+collision_mask = 4
+
+[node name="shape" type="CollisionShape2D" parent="ship/dead area"]
+position = Vector2( 0.353546, -2.2981 )
+shape = SubResource( 6 )
+
+[node name="escudo" parent="ship" instance=ExtResource( 4 )]
+
+[node name="Sprite" parent="ship/escudo" index="0"]
+position = Vector2( -0.123116, -1.41016 )
+scale = Vector2( 0.9521, 0.905127 )
+
+[node name="ship" type="Sprite" parent="ship"]
+texture = ExtResource( 6 )
+hframes = 2
+
+[node name="anim" type="AnimationPlayer" parent="ship"]
+autoplay = "fogo"
+anims/fogo = SubResource( 7 )
+
+[node name="blaster" type="Position2D" parent="ship"]
+position = Vector2( 0, -35.25 )
+rotation = 1.5708
+
+[node name="camera" type="Camera2D" parent="." groups=[
+"camera",
+]]
+anchor_mode = 0
+current = true
+script = ExtResource( 3 )
+
+[node name="HUD" type="CanvasLayer" parent="." groups=[
+"hud",
+]]
+script = ExtResource( 7 )
+
+[node name="score" type="Label" parent="HUD"]
+margin_left = 4.74915
+margin_top = 1.12373
+margin_right = 154.749
+margin_bottom = 22.1237
+custom_fonts/font = SubResource( 9 )
+text = "0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="contagem" type="Node2D" parent="HUD"]
+pause_mode = 2
+script = SubResource( 10 )
+
+[node name="label" type="Label" parent="HUD/contagem"]
+margin_left = 1.0
+margin_top = 2.0
+margin_right = 158.0
+margin_bottom = 285.0
+custom_fonts/font = SubResource( 12 )
+text = "3"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Timer" type="Timer" parent="HUD/contagem"]
+wait_time = 0.7
+autostart = true
+[connection signal="timeout" from="cenario/inimigos/spawn_timer" to="cenario/inimigos" method="_on_spawn_timer_timeout"]
+[connection signal="area_entered" from="ship/Area" to="ship" method="_on_Area_area_entered"]
+[connection signal="body_entered" from="ship/Area" to="ship" method="_on_Area_body_entered"]
+[connection signal="area_entered" from="ship/dead area" to="ship" method="_on_dead_area_area_entered"]
+[connection signal="timeout" from="HUD/contagem/Timer" to="HUD/contagem" method="_on_Timer_timeout"]
+
+[editable path="ship/escudo"]
