@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://sprites/cristais.png" type="Texture" id=1]
+[ext_resource path="res://scripts/cristal.gd" type="Script" id=2]
+
+[sub_resource type="CircleShape2D" id=1]
+radius = 4.34926
+
+[node name="cristal" type="Node2D"]
+position = Vector2( 78.834, 79.6749 )
+script = ExtResource( 2 )
+
+[node name="sprites" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+hframes = 3
+frame = 1
+
+[node name="Area" type="Area2D" parent="."]
+collision_layer = 8
+
+[node name="shape" type="CollisionShape2D" parent="Area"]
+light_mask = -2147483647
+shape = SubResource( 1 )
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true
+autostart = true
+
+[node name="trail" type="Line2D" parent="."]
+[connection signal="area_entered" from="Area" to="." method="_on_Area_area_entered"]
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
